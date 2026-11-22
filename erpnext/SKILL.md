@@ -1,6 +1,6 @@
 ---
 name: erpnext
-description: "How to record customers, leads, quotations, orders, invoices, payments and journal entries in ERPNext with the erp_* tools, and read stock, prices, unpaid invoices and reports. Use whenever the accounting app is ERPNext."
+description: "How to record customers, leads, items, quotations, orders, invoices, payments and journal entries in ERPNext with the erp_* tools, and read stock, prices, unpaid invoices and reports. Use whenever the accounting app is ERPNext."
 ---
 
 # Working in ERPNext
@@ -33,6 +33,14 @@ tool returns (or `erp_link`) when they need to open a document.
   the bank account on that mode of payment in ERPNext.
 - **Prices** come from the selling price list (`erp_search_items` shows them). Use another rate only when the
   supervisor or the approved quotation says so. If a tool says an item has no price, ask.
+- **New items.** When the customer asks for something that is not in `erp_search_items` (try a few words of its
+  name first), add it with `erp_create_item`: a short code in capitals (`LOGO-DESIGN`), the name people read, a
+  description for the print, and `selling_price` only when your supervisor gave the price. Services and
+  made-to-order work are not stock items.
+- **Changing items.** Only when your supervisor asks: the price with `erp_set_item_price` (it applies to every
+  quotation from now on; for one customer only, give a `rate` on that quotation instead), other details (name,
+  description, group, unit) with `erp_update_draft` doctype `Item`. An item's code cannot change, and you cannot
+  delete items.
 - **Stock:** `in_stock` is what is on the shelf now; `projected` subtracts what is already ordered. Do not promise
   a delivery date when `projected` is below the quantity asked for: say so to your supervisor.
 - Dates are `YYYY-MM-DD`. Amounts are in the company's currency.
@@ -43,7 +51,7 @@ tool returns (or `erp_link`) when they need to open a document.
 
 | Job | Tools, in order |
 | --- | --- |
-| Quotation | find or add the customer / lead → `erp_search_items` → `erp_create_quotation` (put what the job includes and excludes, assumptions and restrictions in `project_notes`) → `erp_add_comment` → `erp_download_pdf` (folder `quotations`, draft for checking) → private note with the PDF + approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
+| Quotation | find or add the customer / lead → `erp_search_items` (not there: `erp_create_item`) → `erp_create_quotation` (put what the job includes and excludes, assumptions and restrictions in `project_notes`) → `erp_add_comment` → `erp_download_pdf` (folder `quotations`, draft for checking) → private note with the PDF + approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
 | Order confirmed | lead? `erp_create_customer` with `from_lead` first → `erp_create_sales_order` with `from_quotation` and `delivery_date` → approval → `erp_submit` |
 | Invoice | `erp_create_sales_invoice` with `from_sales_order` (or customer and items) → `erp_download_pdf` (folder `invoices`, draft) → approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
 | Who owes us | `erp_unpaid_invoices` (`overdue_only` for follow-ups), `erp_get_customer` for one customer |

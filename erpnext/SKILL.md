@@ -43,7 +43,7 @@ tool returns (or `erp_link`) when they need to open a document.
 
 | Job | Tools, in order |
 | --- | --- |
-| Quotation | find or add the customer / lead → `erp_search_items` → `erp_create_quotation` → `erp_add_comment` → `erp_download_pdf` (folder `quotations`, draft for checking) → private note with the PDF + approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
+| Quotation | find or add the customer / lead → `erp_search_items` → `erp_create_quotation` (put what the job includes and excludes, assumptions and restrictions in `project_notes`) → `erp_add_comment` → `erp_download_pdf` (folder `quotations`, draft for checking) → private note with the PDF + approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
 | Order confirmed | lead? `erp_create_customer` with `from_lead` first → `erp_create_sales_order` with `from_quotation` and `delivery_date` → approval → `erp_submit` |
 | Invoice | `erp_create_sales_invoice` with `from_sales_order` (or customer and items) → `erp_download_pdf` (folder `invoices`, draft) → approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
 | Who owes us | `erp_unpaid_invoices` (`overdue_only` for follow-ups), `erp_get_customer` for one customer |

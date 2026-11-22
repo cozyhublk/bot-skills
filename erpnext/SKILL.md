@@ -19,10 +19,23 @@ tool returns (or `erp_link`) when they need to open a document.
   only to one of `erp_list_documents "UTM Source"` (WhatsApp, Telegram, …), else leave it out. A quotation may go
   to a lead, but before an order turn the lead into a customer: `erp_create_customer` with `from_lead`.
 - **Everything starts as a draft.** `erp_create_*` makes drafts; nothing reaches the books. Fix a draft with
-  `erp_update_draft` (a new `items` list replaces all rows).
+  `erp_update_document` (a child table given, such as `items`, replaces all its rows: send every row to keep).
 - **`erp_submit` only after your supervisor approved that document** in this chat (number, customer, total).
-  A submitted document is final and cannot be changed by you; if it is wrong, tell your supervisor: people cancel
-  it in ERPNext.
+  A submitted document is final. A wrong submitted quotation: `erp_cancel` → `erp_amend` → fix the copy → approval
+  → `erp_submit`. Other submitted documents (invoices, orders, payments): tell your supervisor, people cancel
+  them in ERPNext.
+- **What you may change:**
+
+  | | Create | Change | Cancel / amend | Delete |
+  | --- | --- | --- | --- | --- |
+  | Items, item prices, customers, contacts, addresses, leads | yes | any time | — (set `disabled` to 1 to retire an item or customer) | never |
+  | Quotations | yes | drafts | yes, after approval | never |
+  | Sales invoices | yes, and `erp_submit` after approval | no | no | never |
+  | Sales orders, payments, journal entries | with their `erp_create_*` tool | drafts | no | never |
+
+  Any field or section can be set: `erp_describe_doctype` lists them (with child tables and allowed values), then
+  `erp_create_document` / `erp_update_document`. Prefer the specific tools (`erp_create_quotation`,
+  `erp_create_item`, …) when they fit: they fill prices and check for duplicates.
 - **A draft prints with a DRAFT mark.** A draft's PDF is only for your supervisor to check. After `erp_submit`,
   run `erp_download_pdf` again and send that file, never the draft one.
 - **Orders and invoices come from submitted documents.** `from_quotation` needs a submitted quotation,
@@ -39,8 +52,8 @@ tool returns (or `erp_link`) when they need to open a document.
   made-to-order work are not stock items.
 - **Changing items.** Only when your supervisor asks: the price with `erp_set_item_price` (it applies to every
   quotation from now on; for one customer only, give a `rate` on that quotation instead), other details (name,
-  description, group, unit) with `erp_update_draft` doctype `Item`. An item's code cannot change, and you cannot
-  delete items.
+  description, group, unit, any other field) with `erp_update_document` doctype `Item`. An item's code cannot
+  change.
 - **Stock:** `in_stock` is what is on the shelf now; `projected` subtracts what is already ordered. Do not promise
   a delivery date when `projected` is below the quantity asked for: say so to your supervisor.
 - Dates are `YYYY-MM-DD`. Amounts are in the company's currency.
@@ -53,6 +66,7 @@ tool returns (or `erp_link`) when they need to open a document.
 | --- | --- |
 | Quotation | find or add the customer / lead → `erp_search_items` (not there: `erp_create_item`) → `erp_create_quotation` (put what the job includes and excludes, assumptions and restrictions in `project_notes`) → `erp_add_comment` → `erp_download_pdf` (folder `quotations`, draft for checking) → private note with the PDF + approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
 | Quotation lost | the customer said no or stopped answering → supervisor agrees → `erp_set_quotation_lost` with short `lost_reasons` (reuse `erp_list_documents "Quotation Lost Reason"` when one fits) and a `detailed_reason` → `erp_add_comment` with the conversation link. Submitted quotations only |
+| Change a submitted quotation | supervisor agrees → `erp_cancel` → `erp_amend` (changes in `values`; the copy is numbered `…-1`) → `erp_download_pdf` (draft) → approval → `erp_submit` → send the new PDF |
 | Order confirmed | lead? `erp_create_customer` with `from_lead` first → `erp_create_sales_order` with `from_quotation` and `delivery_date` → approval → `erp_submit` |
 | Invoice | `erp_create_sales_invoice` with `from_sales_order` (or customer and items) → `erp_download_pdf` (folder `invoices`, draft) → approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
 | Who owes us | `erp_unpaid_invoices` (`overdue_only` for follow-ups), `erp_get_customer` for one customer |
@@ -62,8 +76,8 @@ tool returns (or `erp_link`) when they need to open a document.
 | Journal entry | `erp_list_documents` "Account" with `[["is_group","=",0]]` to find account IDs → `erp_create_journal_entry` (debits = credits) → approval → `erp_submit` |
 
 For any other document, `erp_list_documents` (filters like `[["status","=","Overdue"]]`) and `erp_get_document`
-read it. You cannot delete or cancel anything; drafts that are no longer needed: tell your supervisor. A
-quotation's, order's or invoice's `status` is set by ERPNext, not with `erp_update_draft`.
+read it. You cannot delete anything; drafts that are no longer needed: tell your supervisor. A quotation's,
+order's or invoice's `status` is set by ERPNext, not with `erp_update_document`.
 
 If a tool fails with a permission error, do not look for another way in: tell your supervisor which tool and
 document, so a person can fix the bot user's roles in ERPNext.

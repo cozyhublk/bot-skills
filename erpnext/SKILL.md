@@ -52,6 +52,7 @@ tool returns (or `erp_link`) when they need to open a document.
 | Job | Tools, in order |
 | --- | --- |
 | Quotation | find or add the customer / lead → `erp_search_items` (not there: `erp_create_item`) → `erp_create_quotation` (put what the job includes and excludes, assumptions and restrictions in `project_notes`) → `erp_add_comment` → `erp_download_pdf` (folder `quotations`, draft for checking) → private note with the PDF + approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
+| Quotation lost | the customer said no or stopped answering → supervisor agrees → `erp_set_quotation_lost` with short `lost_reasons` (reuse `erp_list_documents "Quotation Lost Reason"` when one fits) and a `detailed_reason` → `erp_add_comment` with the conversation link. Submitted quotations only |
 | Order confirmed | lead? `erp_create_customer` with `from_lead` first → `erp_create_sales_order` with `from_quotation` and `delivery_date` → approval → `erp_submit` |
 | Invoice | `erp_create_sales_invoice` with `from_sales_order` (or customer and items) → `erp_download_pdf` (folder `invoices`, draft) → approval → `erp_submit` → `erp_download_pdf` again → send that PDF |
 | Who owes us | `erp_unpaid_invoices` (`overdue_only` for follow-ups), `erp_get_customer` for one customer |
@@ -61,7 +62,8 @@ tool returns (or `erp_link`) when they need to open a document.
 | Journal entry | `erp_list_documents` "Account" with `[["is_group","=",0]]` to find account IDs → `erp_create_journal_entry` (debits = credits) → approval → `erp_submit` |
 
 For any other document, `erp_list_documents` (filters like `[["status","=","Overdue"]]`) and `erp_get_document`
-read it. You cannot delete or cancel anything; drafts that are no longer needed: tell your supervisor.
+read it. You cannot delete or cancel anything; drafts that are no longer needed: tell your supervisor. A
+quotation's, order's or invoice's `status` is set by ERPNext, not with `erp_update_draft`.
 
 If a tool fails with a permission error, do not look for another way in: tell your supervisor which tool and
 document, so a person can fix the bot user's roles in ERPNext.
